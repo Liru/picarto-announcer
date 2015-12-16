@@ -17,6 +17,7 @@ var (
 	artists              = picarto.ArtistMap{}
 	channelsToAnnounceOn = make(map[string][]string) // map artist to slice of channels
 	lastOnline           = make(map[string]time.Time)
+	nicknames            = make(map[string]string)
 	bot                  *irc.Conn
 	config               tomlConfig
 )
@@ -26,16 +27,22 @@ const (
 )
 
 type tomlConfig struct {
-	Channels map[string]Channel
+	Channels  map[string]Channel
+	Nicknames []Nickname
 }
 
 type Channel struct {
 	Artists []string
 }
 
+type Nickname struct {
+	Username string
+	Name     string
+}
+
 func announce(artist string) {
 	for _, channel := range channelsToAnnounceOn[artist] {
-		bot.Privmsg("#"+channel, fmt.Sprintf(announcementMessage, artist, artist))
+		bot.Privmsg("#"+channel, fmt.Sprintf(announcementMessage, nicknames[artist], artist))
 	}
 }
 
@@ -51,7 +58,6 @@ func makeIrcBot() {
 				conn.Join("#" + channelName)
 			}
 		})
-	// c.HandleFunc("privmsg", changeMonitor)
 	// c.HandleFunc("privmsg", listArtists)
 
 	if err := c.Connect(); err != nil {
@@ -63,7 +69,6 @@ func makeIrcBot() {
 
 func main() {
 	flag.Parse()
-
 	if _, err := toml.DecodeFile("artists.toml", &config); err != nil {
 		fmt.Println(err)
 		return
@@ -74,13 +79,18 @@ func main() {
 		for _, x := range channelInfo.Artists {
 			artists.AddArtist(x)
 			channelsToAnnounceOn[x] = append(channelsToAnnounceOn[x], channelName)
+			nicknames[x] = x
 		}
 	}
 
-	fmt.Println(channelsToAnnounceOn)
-	done := make(chan struct{})
+	for _, x := range config.Nicknames {
+		nicknames[x.Username] = x.Name
+	}
 
-	announceChan := artists.MakeAnnounceChan(done)
+	makeIrcBot()
+	doneAnnouncing := make(chan struct{})
+
+	announceChan := artists.MakeAnnounceChan(doneAnnouncing)
 
 	for {
 		notification := <-announceChan
