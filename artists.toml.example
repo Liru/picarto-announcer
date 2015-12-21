@@ -1,0 +1,30 @@
+# This is the monitor file. Artists added here are monitored, and notifications are issued as the tracked artists start streaming.
+
+# To add a list of users to monitor for a specific channel, add them in an array under channels, like so:
+[channels.channel1]
+artists = [
+  "artist1",
+  "artist2",
+  "artist3",
+  "artist4",
+  "artist5"
+]
+
+[channels.channel2]
+artists= [
+  "artist2",
+  "artist6"
+]
+
+# etc.
+
+# To announce the username properly (if it's different from the registered name), add a nickname entry below, like so.
+[[nicknames]]
+username = "artist1"
+name = "AmazingArtist"
+
+[[nicknames]]
+username = "artist5"
+name = "PrettyGoodArtist"
+
+# etc.
