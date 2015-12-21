@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/BurntSushi/toml"
@@ -44,6 +45,7 @@ func announce(artist string) {
 	for _, channel := range channelsToAnnounceOn[artist] {
 		bot.Privmsg("#"+channel, fmt.Sprintf(announcementMessage, nicknames[artist], artist))
 	}
+	log.Println(artist, "is streaming.")
 }
 
 func makeIrcBot() {
@@ -61,7 +63,7 @@ func makeIrcBot() {
 	// c.HandleFunc("privmsg", listArtists)
 
 	if err := c.Connect(); err != nil {
-		// log.Fatal("Connection error: ", err)
+		log.Fatal("Connection error: ", err)
 	}
 
 	bot = c
